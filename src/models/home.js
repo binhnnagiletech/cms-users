@@ -70,12 +70,12 @@ const HomeModel = {
       };
     },
     filter(state, action) {
-      console.log(action.payload.status, 'action.payload.status');
+      //   console.log(action.payload.status, 'action.payload.status');
 
-      //   return {
-      //       ...state,
-      //       users: state.users.filter(fil => fil.status == action.payload.status)
-      //   }
+      return {
+        ...state,
+        users: state.users.filter((fil) => fil.status === action.payload.status),
+      };
     },
   },
   effects: {},
