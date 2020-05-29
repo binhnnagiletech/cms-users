@@ -55,13 +55,21 @@ export default defineConfig({
           path: '/',
           component: '../layouts/BasicLayout',
           Routes: ['src/pages/Authorized'],
-          authority: ['admin', 'user'],
+          // authority: ['admin', 'user'],
           routes: [
+            { path: '/', redirect: '/home', authority: ['admin', 'user'] },
+
             {
               name: 'home',
               icon: 'home',
-              path: '/',
+              path: '/home',
               component: './home',
+            },
+            {
+              name: 'list',
+              icon: 'home',
+              path: '/list',
+              component: './list',
             },
             {
               component: '404',
@@ -102,8 +110,8 @@ export default defineConfig({
           const antdProPath = match[1].replace('.less', '');
           const arr = winPath(antdProPath)
             .split('/')
-            .map(a => a.replace(/([A-Z])/g, '-$1'))
-            .map(a => a.toLowerCase());
+            .map((a) => a.replace(/([A-Z])/g, '-$1'))
+            .map((a) => a.toLowerCase());
           return `antd-pro${arr.join('-')}-${localName}`.replace(/--/g, '-');
         }
 
