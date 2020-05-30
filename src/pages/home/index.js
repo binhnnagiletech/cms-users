@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'dva';
 import { Table, Button, Popconfirm, Modal, Form, Input, InputNumber, Select } from 'antd';
+import { AudioOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
+const { Search } = Input;
 
 const { Column } = Table;
 const layout = {
@@ -12,6 +14,15 @@ const layout = {
 const tailLayout = {
   wrapperCol: { offset: 10, span: 16 },
 };
+
+const suffix = (
+  <AudioOutlined
+    style={{
+      fontSize: 16,
+      color: '#1890ff',
+    }}
+  />
+);
 
 // const validateMessages = {
 //   required: '${label} is required!',
@@ -24,15 +35,28 @@ const tailLayout = {
 //   },
 // };
 
-const DemoUser = ({ users, dispatch }) => {
+const DemoUser = ({ addLoading, loading, users, dispatch }) => {
   const [visible, setVisible] = useState(false);
   const [visibleEdit, setVisibleEdit] = useState(false);
-  const onFinish = (values) => {
+
+  useEffect(() => {
+    if (!addLoading) {
+      setVisible(false);
+    }
+  }, [addLoading]);
+
+  useEffect(() => {
     dispatch({
-      type: 'home/add',
+      type: 'home/fetchUsers',
+    });
+  }, []);
+
+  const onFinish = (values) => {
+    console.log('values', values);
+    dispatch({
+      type: 'home/postUserAdd',
       payload: values,
     });
-    setVisible(false);
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -52,6 +76,13 @@ const DemoUser = ({ users, dispatch }) => {
     console.log('Failed:', errorInfo);
   };
 
+  const onChange = (pagination, filters) => {
+    dispatch({
+      type: 'home/filter',
+      payload: filters,
+    });
+  };
+
   return (
     <div>
       <Button
@@ -63,11 +94,25 @@ const DemoUser = ({ users, dispatch }) => {
       >
         Add a row
       </Button>
+      <Search
+        placeholder="input search text"
+        enterButton="Search"
+        size="large"
+        suffix={suffix}
+        onChange={(e) => {
+          dispatch({
+            type: 'home/search',
+            payload: e.target.value,
+          });
+        }}
+        allowClear={false}
+        style={{ marginBottom: 17 }}
+      />
       <Modal title="Basic Modal" visible={visible} footer={null}>
         <Form {...layout} name="control-hooks" onFinish={onFinish} onFinishFailed={onFinishFailed}>
           <Form.Item
-            label="Username"
-            name="username"
+            label="name"
+            name="name"
             rules={[{ required: true, message: 'Please input your username!' }]}
           >
             <Input />
@@ -106,13 +151,13 @@ const DemoUser = ({ users, dispatch }) => {
             rules={[{ required: true, message: 'Please input your status!' }]}
           >
             <Select placeholder="Select status">
-              <Option value="true">True</Option>
-              <Option value="false">False</Option>
+              <Option value="false">0</Option>
+              <Option value="true">1</Option>
             </Select>
           </Form.Item>
 
           <Form.Item {...tailLayout}>
-            <Button type="primary" htmlType="submit">
+            <Button loading={addLoading} type="primary" htmlType="submit">
               Submit
             </Button>
             <Button type="default" onClick={() => setVisible(false)} style={{ marginLeft: 10 }}>
@@ -121,17 +166,36 @@ const DemoUser = ({ users, dispatch }) => {
           </Form.Item>
         </Form>
       </Modal>
-      <Table dataSource={users} rowKey={(r) => r.key || r.name}>
+      <Table
+        loading={loading}
+        dataSource={users}
+        rowKey={(r) => r.name}
+        bordered
+        onChange={onChange}
+      >
         <Column title="Name" dataIndex="name" key="name" />
         <Column title="Age" dataIndex="age" key="age" />
         <Column title="Address" dataIndex="address" key="address" />
         <Column title="Gender" dataIndex="gender" key="gender" />
-        <Column title="Status" dataIndex="status" key="status" />
+        <Column
+          title="Status"
+          dataIndex="status"
+          key="status"
+          filters={[
+            {
+              text: '0',
+              value: '0',
+            },
+            {
+              text: '1',
+              value: '1',
+            },
+          ]}
+        />
         <Column
           title="Action"
           key="action"
           render={(text, record) => {
-            console.log('redcord', record);
             return users.length >= 1 ? (
               <>
                 <Popconfirm
@@ -208,8 +272,8 @@ const DemoUser = ({ users, dispatch }) => {
                       rules={[{ required: true, message: 'Please input your status!' }]}
                     >
                       <Select placeholder="Select status">
-                        <Option value="true">True</Option>
-                        <Option value="false">False</Option>
+                        <Option value="0">0</Option>
+                        <Option value="1">1</Option>
                       </Select>
                     </Form.Item>
 
@@ -239,5 +303,7 @@ const DemoUser = ({ users, dispatch }) => {
 export default connect((state) => {
   return {
     users: state.home.users,
+    addLoading: state.loading.effects['home/postUserAdd'],
+    loading: state.loading.effects['home/fetchUsers'],
   };
 })(DemoUser);

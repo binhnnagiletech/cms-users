@@ -1,0 +1,29 @@
+
+
+
+
+LOAD
+
+URL
+-> Subcriptions: dva
+
+
+add() {
+
+  const { success, data } = yield call();
+  if (success) {
+    yield put({
+      type: 'fetch',
+      ...
+    });
+  }
+
+
+}
+
+history.listen((location) => {
+  ////
+  if (true) {
+    dispatch({ type: 'fetch' });
+  }
+});

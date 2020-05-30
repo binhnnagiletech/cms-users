@@ -1,43 +1,44 @@
-const data = [
-  {
-    key: '1',
-    name: 'Brown',
-    age: 32,
-    gender: 'male',
-    address: 'New York No. 1 Lake Park',
-  },
-  {
-    key: '2',
-    name: 'Green',
-    age: 42,
-    gender: 'female',
-    address: 'London No. 1 Lake Park',
-  },
-  {
-    key: '3',
-    name: 'Black',
-    age: 32,
-    gender: 'male',
-    address: 'Sidney No. 1 Lake Park',
-  },
-];
+import { queryUsersDb, queryUserAdd } from '@/services/home';
 
 const HomeModel = {
   namespace: 'home',
   state: {
-    users: data,
+    users: [],
+  },
+  effects: {
+    *fetchUsers(_, { call, put }) {
+      const response = yield call(queryUsersDb);
+      yield put({
+        type: 'view',
+        payload: response,
+      });
+    },
+    *postUserAdd({ payload }, { call, put }) {
+      const response = yield call(queryUserAdd, payload);
+      console.log('response', response);
+      // console.log('payload', payload);
+
+      yield put({
+        type: 'fetchUsers',
+      });
+    },
   },
   reducers: {
-    add(state, action) {
-      const { username: name, ...rest } = action.payload;
-      const newUser = {
-        key: Math.random(9).toString(),
-        name,
-        ...rest,
-      };
+    view(state, action) {
       return {
         ...state,
-        users: [...state.users, newUser],
+        users: action.payload,
+      };
+    },
+    add(state, { payload }) {
+      // const newUser = {
+      //   key: Math.random(9).toString(),
+      //   ...action.payload,
+      // };
+      console.log('newUser', payload);
+      return {
+        ...state,
+        users: [...state.users, payload],
       };
     },
     delete(state, action) {
@@ -58,8 +59,22 @@ const HomeModel = {
         }),
       };
     },
+    filter(state, action) {
+      console.log(action.payload);
+      return {
+        ...state,
+        users: state.users.filter((user) => action.payload.status.includes(user.status)),
+      };
+    },
+    search(state, action) {
+      return {
+        ...state,
+        users: state.users.filter((user) =>
+          user.name.toLowerCase().includes(action.payload.toLowerCase()),
+        ),
+      };
+    },
   },
-  effects: {},
 };
 
 export default HomeModel;
