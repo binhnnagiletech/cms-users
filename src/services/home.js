@@ -1,31 +1,78 @@
-// import request from '@/utils/request';
+import request from '@/utils/request';
 
-let users = [];
+// let users = [
+//   {
+//     key: 1,
+//     name: 'mmacmeanma0',
+//     age: 1,
+//     address: '2',
+//     gender: 'Male',
+//     status: '1',
+//   },
+//   {
+//     key: 2,
+//     name: 'efeatherbie1',
+//     age: 2,
+//     address: '819',
+//     gender: 'Male',
+//     status: '1',
+//   },
+//   {
+//     key: 3,
+//     name: 'ssefton2',
+//     age: 3,
+//     address: '7',
+//     gender: 'Male',
+//     status: '0',
+//   },
+// ];
 
 export async function queryUsersDb() {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(users);
-    }, 2000);
-  });
+  return request('/users');
 }
 
 export function queryUserAdd(values) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      users = [
-        ...users,
-        {
-          ...values,
-        },
-      ];
+  console.log('values add', values);
+  return request('/users', {
+    method: 'POST',
+    data: values,
+  });
+}
 
-      resolve();
-    }, 3000);
-  }, 3000);
+export function queryUserDelete(values) {
+  console.log('values delete', values);
+  return request(`/users/${values}`, {
+    method: 'DELETE',
+  });
+}
 
-  // return request('/users', {
-  //   method: 'POST',
-  //   data: values,
-  // });
+export function queryUserEdit(values) {
+  console.log('values edit', values);
+  return request(`/users/${values.id}`, {
+    method: 'PATCH',
+    data: values,
+  });
+}
+
+export function queryUsersFilter(values) {
+  console.log('values filter', values);
+  return request(`/users?status=${values}&status=${values}`);
+}
+
+export function queryUserSearch(values) {
+  console.log('values seach', values);
+  return request(`/users?name=${values}`, {
+    method: 'GET',
+    payload: values,
+  });
+}
+
+export function queryUserActive(values) {
+  return request(`/users/${values.id}`, {
+    method: 'PUT',
+    data: {
+      ...values,
+      status: 1 * !parseInt(values.status, 10),
+    },
+  });
 }

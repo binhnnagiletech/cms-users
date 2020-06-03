@@ -50,7 +50,7 @@ const errorHandler = (error) => {
  */
 
 const request = extend({
-  prefix: 'http://localhost:3000',
+  prefix: 'http://localhost:3004',
   errorHandler,
   // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie
