@@ -26,7 +26,7 @@ const codeMessage = {
  * 异常处理程序
  */
 
-const errorHandler = error => {
+const errorHandler = (error) => {
   const { response } = error;
 
   if (response && response.status) {
@@ -50,6 +50,7 @@ const errorHandler = error => {
  */
 
 const request = extend({
+  prefix: 'http://localhost:8088',
   errorHandler,
   // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie

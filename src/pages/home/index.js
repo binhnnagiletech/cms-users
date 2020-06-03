@@ -1,53 +1,78 @@
-import React, { useState } from 'react';
-import { Table, Input, Button, Popconfirm, Form, Modal } from 'antd';
+import React, { useState, useEffect } from 'react';
+
+import { Table, Input, Button, Tag, Form, Modal } from 'antd';
+
+import { AudioOutlined } from '@ant-design/icons';
+
 import { connect } from 'dva';
+
+import Action from './action';
+
+const { Search } = Input;
 // import { log } from 'lodash-decorators/utils';
 
 const FormItem = Form.Item;
 
-const ListUser = ({ users, dispatch }) => {
+const ListUser = ({ addLoading, loading, users, dispatch }) => {
   const [visible, setVisible] = useState(false);
-  const [visible1, setVisible1] = useState(false);
+
   // const [form] = Form.useForm();
-  const handleDelete = (record) => {
+
+  useEffect(() => {
     dispatch({
-      type: 'home/delete',
-      payload: record,
+      type: 'home/fetch',
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!addLoading) {
+      setVisible(false);
+    }
+  }, [addLoading]);
 
   const showModal = () => {
     setVisible(true);
   };
 
+  const suffix = (
+    <AudioOutlined
+      style={{
+        fontSize: 16,
+        color: '#1890ff',
+      }}
+    />
+  );
+
   const handleOk = (data) => {
-    console.log(data, 'data');
     dispatch({
-      type: 'home/add',
+      type: 'home/fetchAdd',
       payload: data,
     });
     setVisible(false);
   };
 
-  const handleEdit = (data) => {
-    console.log(data, 'data');
+  const handleSearch = (e) => {
     dispatch({
-      type: 'home/edit',
-      payload: data,
+      type: 'home/fetchSearch',
+      payload: e.target.value,
     });
-    setVisible1(false);
   };
-
   const handleCancel = () => {
     setVisible(false);
   };
-  // console.log(form,'values');
+
+  function onChange(pagination, filters) {
+    dispatch({
+      type: 'home/fetchFilter',
+      payload: filters,
+    });
+  }
 
   const columns = [
     {
       title: 'name',
       dataIndex: 'name',
-      width: '30%',
+      width: '20%',
       editable: true,
     },
     {
@@ -60,102 +85,50 @@ const ListUser = ({ users, dispatch }) => {
     },
     {
       title: 'status',
+      key: 'status',
       dataIndex: 'status',
-      filters: [
-        {
-          text: '0',
-          value: '0',
-        },
-        {
-          text: '1',
-          value: '1',
-        },
-      ],
-      onFilter: (value, record) => {
-        // console.log(record.status,'record');
-
-        dispatch({
-          type: 'home/filter',
-          payload: record,
-        });
+      render: (status) => {
+        return <Tag color={status === 1 ? 'green' : 'red'}>{status}</Tag>;
       },
     },
+    // {
+    //   title: 'status',
+    //   dataIndex: 'status',
+    //   filters: [
+    //     {
+    //       text: '0',
+    //       value: '0',
+    //     },
+    //     {
+    //       text: '1',
+    //       value: '1',
+    //     },
+    //   ],
+    //   // onFilter: (value, record) => {
+
+    //   //   dispatch({
+    //   //     type: 'home/filter',
+    //   //     payload: record,
+    //   //   });
+    //   // },
+    // },
     {
       title: 'gender',
       dataIndex: 'gender',
     },
     {
-      title: 'timecCreate',
-      dataIndex: 'timecCreate',
+      title: 'timeCreate',
+      dataIndex: 'timeCreate',
     },
     {
       title: 'timeUpdate',
       dataIndex: 'timeUpdate',
     },
+
     {
       title: 'operation',
       dataIndex: 'operation',
-      render: (text, record) => (
-        <>
-          <Popconfirm title="Sure to delete?" onConfirm={() => handleDelete(record.key)}>
-            <a>Delete</a>
-          </Popconfirm>
-
-          <a onClick={() => setVisible1(true)}> edit</a>
-          <Modal title="EDIT" visible={visible1} footer={null} onCancel={() => setVisible1(false)}>
-            <Form onFinish={handleEdit} initialValues={record}>
-              <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="key" name="key">
-                <Input readOnly />
-              </FormItem>
-              <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="Name" name="name">
-                <Input />
-              </FormItem>
-              <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="Name" name="phone">
-                <Input />
-              </FormItem>
-              <FormItem
-                labelCol={{ span: 7 }}
-                wrapperCol={{ span: 15 }}
-                label="Name"
-                name="address"
-              >
-                <Input />
-              </FormItem>
-              <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="Name" name="status">
-                <Input />
-              </FormItem>
-              <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="Name" name="gender">
-                <Input />
-              </FormItem>
-              <FormItem
-                labelCol={{ span: 7 }}
-                wrapperCol={{ span: 15 }}
-                label="Name"
-                name="timecCreate"
-              >
-                <Input />
-              </FormItem>
-              <FormItem
-                labelCol={{ span: 7 }}
-                wrapperCol={{ span: 15 }}
-                label="Name"
-                name="timeUpdate"
-              >
-                <Input />
-              </FormItem>
-              <FormItem>
-                <Button type="primary" htmlType="submit">
-                  SUBMIT
-                </Button>
-                <Button type="primary" onClick={() => setVisible(false)}>
-                  {' '}
-                  CANCEL
-                </Button>
-              </FormItem>
-            </Form>
-          </Modal>
-        </>
-      ),
+      render: (text, record) => <Action record={record} dispatch={dispatch} />,
     },
   ];
 
@@ -166,6 +139,9 @@ const ListUser = ({ users, dispatch }) => {
       </Button>
       <Modal title="ADD USERS" visible={visible} onCancel={handleCancel} footer={null}>
         <Form onFinish={handleOk}>
+          <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="id" name="id">
+            <Input />
+          </FormItem>
           <FormItem labelCol={{ span: 7 }} wrapperCol={{ span: 15 }} label="name" name="name">
             <Input />
           </FormItem>
@@ -198,7 +174,7 @@ const ListUser = ({ users, dispatch }) => {
             <Input />
           </FormItem>
           <FormItem>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={addLoading}>
               SUBMIT
             </Button>
             <Button type="primary" onClick={() => setVisible(false)}>
@@ -208,7 +184,26 @@ const ListUser = ({ users, dispatch }) => {
           </FormItem>
         </Form>
       </Modal>
-      <Table rowKey={(r) => r.uid || r.name} dataSource={users} columns={columns} bordered />;
+      <Search
+        style={{
+          paddingTop: 16,
+          paddingBottom: 16,
+        }}
+        placeholder="input search text"
+        enterButton="Search"
+        size="large"
+        suffix={suffix}
+        onChange={handleSearch}
+      />
+      <Table
+        loading={loading}
+        rowKey={(r) => r.uid || r.name}
+        dataSource={users}
+        columns={columns}
+        onChange={onChange}
+        bordered
+      />
+      ;
     </>
   );
 };
@@ -216,5 +211,7 @@ const ListUser = ({ users, dispatch }) => {
 export default connect((state) => {
   return {
     users: state.home.users,
+    addLoading: state.loading.effects['home/queryAddUser'],
+    loading: state.loading.effects['home/query'],
   };
 })(ListUser);
